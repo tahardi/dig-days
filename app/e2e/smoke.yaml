@@ -1,0 +1,6 @@
+appId: com.tahardi.digdays
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: 'app-title'

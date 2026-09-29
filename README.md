@@ -28,6 +28,10 @@ npx expo start
 Scan the QR code with the iPhone camera to open the app in Expo Go. The App Store version of Expo Go only supports the
 latest SDK, so after a new SDK release run `npx expo install expo@latest && npx expo install --fix`.
 
+## End-to-end tests
+
+See `app/e2e/README.md` for how to run the Maestro flows on the iOS Simulator.
+
 ## Development
 
 Run every check before opening a PR:
