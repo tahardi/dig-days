@@ -14,6 +14,7 @@ This is a proof of concept for personal use.
 
 ## Prerequisites
 
+- Go 1.27.1 or newer (`go version` must print `go1.27.1` or later)
 - Node 24 LTS (`app/.nvmrc` pins it; run `nvm use` in `app/`)
 - Expo Go on your iPhone, signed in to your Expo account. Also run `npx expo login` on the computer.
 
