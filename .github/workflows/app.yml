@@ -1,29 +1,32 @@
 name: App
 
 on:
-  pull_request:
+  workflow_dispatch:
   push:
     branches:
-      - main
+      - 'main'
+  pull_request:
   schedule:
     - cron: '0 7 * * *'
 
 concurrency:
-  group: app-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
     outputs:
       app: ${{ steps.filter.outputs.app }}
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v7
 
-      - name: Filter Paths
-        id: filter
+      - name: Detect Changes
         uses: dorny/paths-filter@v4
+        id: filter
         with:
           filters: |
             app:
