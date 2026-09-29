@@ -1,0 +1,11 @@
+{
+  "transcript": "Started the berm on the new Granite Ridge trail with the rock bar. Took an hour for lunch.",
+  "draft": {
+    "trail": {"existing_id": null, "new_name": "Granite Ridge"},
+    "feature": {"existing_id": null, "new_name": "Berm"},
+    "summary": "Started building the berm on Granite Ridge.",
+    "tools": ["rock bar"],
+    "break_minutes": 60,
+    "notes": "No existing trail matched 'Granite Ridge'; proposing a new trail."
+  }
+}
