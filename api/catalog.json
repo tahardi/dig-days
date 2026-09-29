@@ -1,0 +1,7 @@
+{
+  "trails": [
+    {"id": 1, "name": "White Wolf", "features": [{"id": 1, "name": "Step-up #1"}, {"id": 2, "name": "Step-up #2"}]},
+    {"id": 2, "name": "Ridgeback", "features": []}
+  ],
+  "tools": ["rock bar", "sledge", "McLeod"]
+}
