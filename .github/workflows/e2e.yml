@@ -14,28 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v7
-
-      - name: Detect Changes
-        uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            app:
-              - 'app/**'
-              - '.github/workflows/e2e.yml'
-
   app-e2e:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: macos-26
     timeout-minutes: 60
     defaults:
@@ -70,19 +49,36 @@ jobs:
           path: app/ios/Pods
           key: pods-${{ runner.os }}-${{ hashFiles('app/package-lock.json') }}
 
+      - name: Install ccache
+        run: brew install ccache
+
+      - name: Cache Compiler Output
+        uses: actions/cache@v6
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-
+
       - name: Install Pods
-        run: cd ios && pod install
+        run: cd ios && USE_CCACHE=1 pod install
 
-      - name: Build for Simulator
-        run: >
-          xcodebuild -workspace ios/DigDays.xcworkspace -scheme DigDays -configuration Release
-          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build | tail -50
-
-      - name: Boot Simulator
+      - name: Start Simulator
         run: |
           UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][]|select(.name|startswith("iPhone"))][0].udid')
           xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Build for Simulator
+        env:
+          CCACHE_DIR: /Users/runner/.ccache
+          CCACHE_MAXSIZE: 1G
+        run: >
+          xcodebuild -workspace ios/DigDays.xcworkspace -scheme DigDays -configuration Release
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build
+          ARCHS=arm64 ONLY_ACTIVE_ARCH=YES | tail -50
+
+      - name: Install App
+        run: |
+          xcrun simctl bootstatus booted -b
           xcrun simctl install booted build/Build/Products/Release-iphonesimulator/DigDays.app
 
       - name: Install Maestro
