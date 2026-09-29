@@ -12,6 +12,10 @@ This is a proof of concept for personal use.
 - `app/`: Expo app (React Native, TypeScript), run in Expo Go
 - `backend/`: stateless Go service that turns a voice clip into a draft entry
 
+## Prerequisites
+
+- Go 1.27.1 or newer (`go version` must print `go1.27.1` or later)
+
 ## Development
 
 Run every check before opening a PR:

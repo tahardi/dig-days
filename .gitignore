@@ -24,3 +24,5 @@ app/android/
 
 *.bin
 tmp/
+
+backend/.tools/

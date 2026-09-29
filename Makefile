@@ -7,4 +7,8 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr:
+pre-pr: backend-pre-pr
+
+.PHONY: backend-pre-pr
+backend-pre-pr:
+	@$(MAKE) -C backend pre-pr
