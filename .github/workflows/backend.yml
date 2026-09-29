@@ -14,29 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v7
-
-      - name: Detect Changes
-        uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'backend/**'
-              - 'api/**'
-              - '.github/workflows/backend.yml'
-
   backend-lint:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -55,8 +33,6 @@ jobs:
           args: --timeout=3m --config=./.golangci.yaml
 
   backend-unit-test:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -71,8 +47,6 @@ jobs:
         run: make -C backend test-unit
 
   backend-integration-test:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
