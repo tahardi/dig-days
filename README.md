@@ -15,6 +15,18 @@ This is a proof of concept for personal use.
 ## Prerequisites
 
 - Go 1.27.1 or newer (`go version` must print `go1.27.1` or later)
+- Node 24 LTS (`app/.nvmrc` pins it; run `nvm use` in `app/`)
+- Expo Go on your iPhone, signed in to your Expo account. Also run `npx expo login` on the computer.
+
+## Running the app
+
+```bash
+cd app
+npx expo start
+```
+
+Scan the QR code with the iPhone camera to open the app in Expo Go. The App Store version of Expo Go only supports the
+latest SDK, so after a new SDK release run `npx expo install expo@latest && npx expo install --fix`.
 
 ## Development
 
