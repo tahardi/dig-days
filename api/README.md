@@ -1,14 +1,15 @@
 # API
 
-JSON fixtures in this directory define the backend API. Go and Jest tests both load them.
+The backend API is defined by JSON test data in `testdata/`. It is not app data: the files are examples used only by
+Go and Jest tests, so the two sides cannot drift.
 
-**Change a fixture only together with both the Go and TypeScript code in the same PR.**
+**Change a file in `testdata/` only together with both the Go and TypeScript code in the same PR.**
 
 ## Endpoints
 
 ### GET /health
 
-Returns `200` with `health-response.json`. No headers required.
+Returns `200` with `testdata/health-response.json`. No headers required.
 
 ### POST /process
 
@@ -17,9 +18,9 @@ Turns a voice recording into a draft work log entry.
 - Headers: `Authorization: Bearer <key>`, `Content-Type: multipart/form-data`
 - Multipart fields:
   - `audio`: the recording (max 50 MB)
-  - `catalog`: JSON matching `catalog.json`
-- Success: `200` with a body matching `process-response-existing.json` or `process-response-new.json`
-- Failure: an error body matching `error-no-speech.json` or `error-unauthorized.json`
+  - `catalog`: JSON matching `testdata/catalog.json`
+- Success: `200` with a body matching `testdata/process-response-existing.json` or `testdata/process-response-new.json`
+- Failure: an error body matching `testdata/error-no-speech.json` or `testdata/error-unauthorized.json`
 
 ## Error codes
 
