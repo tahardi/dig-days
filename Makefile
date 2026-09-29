@@ -7,4 +7,9 @@ SHELL := bash
 .SUFFIXES:
 
 .PHONY: pre-pr
-pre-pr:
+pre-pr: app-pre-pr
+
+.PHONY: app-pre-pr
+app-pre-pr:
+	@npm --prefix app ci
+	@npm --prefix app run check
