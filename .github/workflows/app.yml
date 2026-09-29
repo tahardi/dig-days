@@ -14,29 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v7
-
-      - name: Detect Changes
-        uses: dorny/paths-filter@v4
-        id: filter
-        with:
-          filters: |
-            app:
-              - 'app/**'
-              - 'api/**'
-              - '.github/workflows/app.yml'
-
   app-format:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,8 +37,6 @@ jobs:
         run: npm run format:check
 
   app-lint:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,8 +59,6 @@ jobs:
         run: npm run lint
 
   app-typecheck:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -107,8 +81,6 @@ jobs:
         run: npm run typecheck
 
   app-deps:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     env:
       CI: 1
@@ -133,8 +105,6 @@ jobs:
         run: npm run deps:check
 
   app-test:
-    needs: changes
-    if: ${{ github.event_name != 'pull_request' || needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
