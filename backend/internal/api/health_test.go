@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +16,7 @@ import (
 )
 
 func TestServer_Health(t *testing.T) {
-	want, err := os.ReadFile(filepath.Join("..", "..", "..", "api", "testdata", "health-response.json"))
+	want, err := os.ReadFile("../../../api/testdata/health-response.json")
 	require.NoError(t, err)
 
 	newRequest := func(t *testing.T, url string, method string) *http.Request {
