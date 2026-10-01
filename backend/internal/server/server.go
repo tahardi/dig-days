@@ -1,23 +1,20 @@
 package server
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/tahardi/dig-days/backend/internal/model"
+	"github.com/tahardi/dig-days/backend/internal/transcribe"
 )
 
-type Transcriber interface {
-	Transcribe(ctx context.Context, audioPath string) (string, error)
-}
-
-type Extractor interface {
-	Extract(ctx context.Context, transcript string, catalog model.Catalog) (model.Draft, error)
-}
-
-func NewServer(key string, transcriber Transcriber, extractor Extractor, logger *slog.Logger) http.Handler {
+func NewServer(
+	key string,
+	transcriber transcribe.Transcriber,
+	extractor model.Extractor,
+	logger *slog.Logger,
+) http.Handler {
 	_, _ = transcriber, extractor
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", healthHandler)
