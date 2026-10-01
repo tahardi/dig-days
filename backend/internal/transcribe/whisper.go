@@ -13,14 +13,23 @@ import (
 var ErrRunning = errors.New("running transcription tool")
 
 type Whisper struct {
-	FFmpegBin  string
-	WhisperBin string
-	ModelPath  string
-	TempDir    string
+	ffmpegBin  string
+	whisperBin string
+	modelPath  string
+	tempDir    string
 }
 
-func (w Whisper) Transcribe(ctx context.Context, audioPath string) (string, error) {
-	f, err := os.CreateTemp(w.TempDir, "clip-*.wav")
+func NewWhisper(ffmpegBin, whisperBin, modelPath, tempDir string) *Whisper {
+	return &Whisper{
+		ffmpegBin:  ffmpegBin,
+		whisperBin: whisperBin,
+		modelPath:  modelPath,
+		tempDir:    tempDir,
+	}
+}
+
+func (w *Whisper) Transcribe(ctx context.Context, audioPath string) (string, error) {
+	f, err := os.CreateTemp(w.tempDir, "clip-*.wav")
 	if err != nil {
 		return "", fmt.Errorf("creating temp wav: %w", err)
 	}
@@ -32,7 +41,7 @@ func (w Whisper) Transcribe(ctx context.Context, audioPath string) (string, erro
 
 	ffmpeg := exec.CommandContext(
 		ctx,
-		w.FFmpegBin,
+		w.ffmpegBin,
 		"-y",
 		"-i", audioPath,
 		"-ar", "16000",
@@ -44,7 +53,7 @@ func (w Whisper) Transcribe(ctx context.Context, audioPath string) (string, erro
 		return "", fmt.Errorf("%w: ffmpeg: %w", ErrRunning, err)
 	}
 
-	whisper := exec.CommandContext(ctx, w.WhisperBin, "-m", w.ModelPath, "-f", wav, "-l", "en", "-nt", "-np")
+	whisper := exec.CommandContext(ctx, w.whisperBin, "-m", w.modelPath, "-f", wav, "-l", "en", "-nt", "-np")
 	out, err := run(whisper)
 	if err != nil {
 		return "", fmt.Errorf("%w: whisper: %w", ErrRunning, err)

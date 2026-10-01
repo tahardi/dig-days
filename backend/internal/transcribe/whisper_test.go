@@ -39,12 +39,13 @@ func TestWhisper_Transcribe(t *testing.T) {
 			binDir := t.TempDir()
 			audioPath := filepath.Join(binDir, "clip.m4a")
 			require.NoError(t, os.WriteFile(audioPath, []byte("audio"), 0o600))
-			w := transcribe.Whisper{
-				FFmpegBin:  writeScript(t, binDir, "ffmpeg", tt.ffmpeg),
-				WhisperBin: writeScript(t, binDir, "whisper-cli", tt.whisper),
-				ModelPath:  filepath.Join(binDir, "model.bin"),
-				TempDir:    t.TempDir(),
-			}
+			tempDir := t.TempDir()
+			w := transcribe.NewWhisper(
+				writeScript(t, binDir, "ffmpeg", tt.ffmpeg),
+				writeScript(t, binDir, "whisper-cli", tt.whisper),
+				filepath.Join(binDir, "model.bin"),
+				tempDir,
+			)
 			ctx, cancel := context.WithCancel(t.Context())
 			if tt.canceled {
 				cancel()
@@ -61,7 +62,7 @@ func TestWhisper_Transcribe(t *testing.T) {
 				require.NoError(t, err)
 			}
 			assert.Equal(t, tt.want, got)
-			entries, err := os.ReadDir(w.TempDir)
+			entries, err := os.ReadDir(tempDir)
 			require.NoError(t, err)
 			assert.Empty(t, entries)
 		})
