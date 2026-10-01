@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +28,7 @@ func TestFixtures_RoundTrip(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			original, err := os.ReadFile(filepath.Join("..", "..", "..", "api", "testdata", tt.file))
+			original, err := os.ReadFile("../../../api/testdata/" + tt.file)
 			require.NoError(t, err)
 			got := tt.into()
 

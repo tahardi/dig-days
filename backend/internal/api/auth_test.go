@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 )
 
 func TestRequireKey(t *testing.T) {
-	unauthorized, err := os.ReadFile(filepath.Join("..", "..", "..", "api", "testdata", "error-unauthorized.json"))
+	unauthorized, err := os.ReadFile("../../../api/testdata/error-unauthorized.json")
 	require.NoError(t, err)
 
 	tests := []struct {
