@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tahardi/dig-days/backend/internal/api"
 	"github.com/tahardi/dig-days/backend/internal/config"
+	"github.com/tahardi/dig-days/backend/internal/server"
 )
 
 const (
@@ -36,7 +36,7 @@ func run(logger *slog.Logger) error {
 
 	srv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           api.NewServer(cfg.Key, nil, nil, logger),
+		Handler:           server.NewServer(cfg.Key, nil, nil, logger),
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,
 	}

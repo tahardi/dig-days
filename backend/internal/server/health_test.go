@@ -1,4 +1,4 @@
-package api_test
+package server_test
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tahardi/dig-days/backend/internal/api"
+	"github.com/tahardi/dig-days/backend/internal/server"
 )
 
 func TestServer_Health(t *testing.T) {
@@ -31,7 +31,7 @@ func TestServer_Health(t *testing.T) {
 		// given
 		var logs bytes.Buffer
 		logger := slog.New(slog.NewTextHandler(&logs, nil))
-		srv := httptest.NewServer(api.NewServer("secret", nil, nil, logger))
+		srv := httptest.NewServer(server.NewServer("secret", nil, nil, logger))
 		defer srv.Close()
 
 		// when
@@ -51,7 +51,7 @@ func TestServer_Health(t *testing.T) {
 
 	t.Run("error - post is not allowed", func(t *testing.T) {
 		// given
-		srv := httptest.NewServer(api.NewServer("secret", nil, nil, slog.New(slog.DiscardHandler)))
+		srv := httptest.NewServer(server.NewServer("secret", nil, nil, slog.New(slog.DiscardHandler)))
 		defer srv.Close()
 
 		// when

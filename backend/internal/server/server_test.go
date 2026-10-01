@@ -1,4 +1,4 @@
-package api_test
+package server_test
 
 import (
 	"log/slog"
@@ -8,13 +8,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tahardi/dig-days/backend/internal/api"
+	"github.com/tahardi/dig-days/backend/internal/server"
 )
 
 func TestNewServer(t *testing.T) {
 	t.Run("error - health without key is unauthorized", func(t *testing.T) {
 		// given
-		handler := api.NewServer("secret", nil, nil, slog.New(slog.DiscardHandler))
+		handler := server.NewServer("secret", nil, nil, slog.New(slog.DiscardHandler))
 		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/health", nil)
 		rec := httptest.NewRecorder()
 
