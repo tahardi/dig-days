@@ -73,5 +73,8 @@ jobs:
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
+      - name: Start Fake Backend
+        run: node e2e/fake-backend.mjs &
+
       - name: Run Flows
         run: maestro test e2e/
