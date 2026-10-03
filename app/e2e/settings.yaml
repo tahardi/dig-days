@@ -1,0 +1,21 @@
+appId: com.tahardi.digdays
+---
+- launchApp:
+    clearState: true
+- tapOn: 'Settings'
+- tapOn:
+    id: 'backend-url'
+- inputText: 'http://127.0.0.1:8787'
+- tapOn:
+    id: 'backend-key'
+- inputText: 'e2e-key'
+- tapOn:
+    id: 'settings-save'
+- assertVisible:
+    id: 'settings-status'
+    text: 'Saved'
+- tapOn:
+    id: 'settings-test'
+- assertVisible:
+    id: 'settings-status'
+    text: 'Connected'
