@@ -2,7 +2,8 @@ appId: com.tahardi.digdays
 ---
 - launchApp:
     clearState: true
-- tapOn: 'Settings'
+- tapOn:
+    id: 'tab-settings'
 - tapOn:
     id: 'backend-url'
 - inputText: 'http://127.0.0.1:8787'
