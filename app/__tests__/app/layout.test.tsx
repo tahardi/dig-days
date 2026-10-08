@@ -5,8 +5,9 @@ import Today from '@/app/(tabs)/index';
 import Settings from '@/app/(tabs)/settings';
 import Trails from '@/app/(tabs)/trails';
 
+const mockDb = { getFirstAsync: async () => null };
 jest.mock('@/db/DbContext', () => ({
-  useDb: () => ({}),
+  useDb: () => mockDb,
 }));
 jest.mock('@/settings/store', () => ({
   loadBackendConfig: jest.fn().mockResolvedValue(null),

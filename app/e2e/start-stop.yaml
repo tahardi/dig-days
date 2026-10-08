@@ -1,0 +1,13 @@
+appId: com.tahardi.digdays
+---
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- tapOn:
+    id: 'start-button'
+- assertVisible:
+    id: 'elapsed-timer'
+- tapOn:
+    id: 'stop-button'
+- assertVisible: 'Record'
