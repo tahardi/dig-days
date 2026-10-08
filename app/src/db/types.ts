@@ -42,3 +42,10 @@ export type ReviewInput = {
   tools: string[];
   durationMinutes: number;
 };
+
+export type ExportData = {
+  trails: Trail[];
+  features: Feature[];
+  workDays: WorkDay[];
+  photos: Photo[];
+};

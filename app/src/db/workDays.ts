@@ -198,3 +198,8 @@ export async function listWorkDays(
   );
   return rows.map(toWorkDay);
 }
+
+export async function listAllWorkDays(db: Db): Promise<WorkDay[]> {
+  const rows = await db.getAllAsync<WorkDayRow>('SELECT * FROM work_days ORDER BY started_at, id');
+  return rows.map(toWorkDay);
+}

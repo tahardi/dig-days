@@ -31,3 +31,8 @@ export async function getFeature(db: Db, id: number): Promise<Feature | null> {
   const row = await db.getFirstAsync<FeatureRow>('SELECT * FROM features WHERE id = ?', id);
   return row ? toFeature(row) : null;
 }
+
+export async function listAllFeatures(db: Db): Promise<Feature[]> {
+  const rows = await db.getAllAsync<FeatureRow>('SELECT * FROM features ORDER BY id');
+  return rows.map(toFeature);
+}

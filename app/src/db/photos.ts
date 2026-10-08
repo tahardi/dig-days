@@ -20,3 +20,8 @@ export async function listPhotos(db: Db, workDayId: number): Promise<Photo[]> {
   );
   return rows.map((row) => ({ id: row.id, workDayId: row.work_day_id, path: row.path, takenAt: row.taken_at }));
 }
+
+export async function listPhotosForExport(db: Db): Promise<Photo[]> {
+  const rows = await db.getAllAsync<PhotoRow>('SELECT * FROM photos ORDER BY id');
+  return rows.map((row) => ({ id: row.id, workDayId: row.work_day_id, path: row.path, takenAt: row.taken_at }));
+}
