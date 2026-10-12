@@ -2,4 +2,8 @@ appId: com.tahardi.digdays
 ---
 - launchApp:
     clearState: true
+- extendedWaitUntil:
+    visible:
+      id: 'tab-index'
+    timeout: 60000
 - assertVisible: 'Today'

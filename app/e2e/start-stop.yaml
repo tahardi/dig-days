@@ -3,7 +3,11 @@ appId: com.tahardi.digdays
 - launchApp:
     clearState: true
     permissions:
-      location: allow
+      location: inuse
+- extendedWaitUntil:
+    visible:
+      id: 'tab-index'
+    timeout: 60000
 - tapOn:
     id: 'start-button'
 - assertVisible:

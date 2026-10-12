@@ -2,8 +2,17 @@ appId: com.tahardi.digdays
 ---
 - launchApp:
     clearState: true
-- tapOn:
-    id: 'tab-settings'
+- extendedWaitUntil:
+    visible:
+      id: 'tab-index'
+    timeout: 60000
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: 'tab-settings'
+      - assertVisible:
+          id: 'backend-url'
 - tapOn:
     id: 'backend-url'
 - inputText: 'http://127.0.0.1:8787'
