@@ -80,4 +80,11 @@ jobs:
         run: xcrun simctl location booted set 44.4759,-73.2121
 
       - name: Run Flows
-        run: maestro test e2e/
+        run: maestro test e2e/ --debug-output maestro-debug
+
+      - name: Upload Maestro Debug Output
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-debug
+          path: app/maestro-debug
