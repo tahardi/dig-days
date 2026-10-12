@@ -1,0 +1,8 @@
+appId: com.tahardi.digdays
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: 'tab-trails'
+- assertVisible:
+    id: 'trails-empty'
