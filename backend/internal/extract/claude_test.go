@@ -1,21 +1,23 @@
 package extract_test
 
 import (
+	"context"
 	"encoding/json"
-	"io"
-	"net/http"
-	"net/http/httptest"
+	"errors"
 	"os"
 	"testing"
 
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tahardi/dig-days/backend/internal/extract"
+	"github.com/tahardi/dig-days/backend/internal/llm"
 	"github.com/tahardi/dig-days/backend/internal/model"
+	"github.com/tahardi/dig-days/backend/mocks"
 )
+
+var errClient = errors.New("client failed")
 
 const transcript = "I worked on the second step-up for White Wolf today."
 
@@ -28,47 +30,19 @@ func loadResponse(t *testing.T) model.ProcessResponse {
 	return resp
 }
 
-func messageBody(t *testing.T, text string, stopReason string) string {
-	t.Helper()
-	body, err := json.Marshal(map[string]any{
-		"id":            "msg_test",
-		"type":          "message",
-		"role":          "assistant",
-		"model":         "claude-opus-5",
-		"content":       []map[string]any{{"type": "text", "text": text}},
-		"stop_reason":   stopReason,
-		"stop_sequence": nil,
-		"usage":         map[string]any{"input_tokens": 1, "output_tokens": 1},
-	})
-	require.NoError(t, err)
-	return string(body)
-}
-
-func marshalDraft(t *testing.T, draft model.Draft) string {
-	t.Helper()
-	data, err := json.Marshal(draft)
-	require.NoError(t, err)
-	return string(data)
-}
-
-func newClaude(t *testing.T, status int, body string) (extract.Claude, *http.Request, *[]byte) {
-	t.Helper()
-	var req http.Request
-	var recorded []byte
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req = *r
-		recorded, _ = io.ReadAll(r.Body)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
-		_, _ = w.Write([]byte(body))
-	}))
-	t.Cleanup(srv.Close)
-	client := anthropic.NewClient(
-		option.WithBaseURL(srv.URL),
-		option.WithAPIKey("test"),
-		option.WithMaxRetries(0),
-	)
-	return extract.NewClaude(client), &req, &recorded
+func structuredReturning(draft *model.Draft, err error) func(
+	context.Context,
+	string,
+	string,
+	map[string]any,
+	any,
+) error {
+	return func(_ context.Context, _ string, _ string, _ map[string]any, out any) error {
+		if target, ok := out.(*model.Draft); ok && draft != nil {
+			*target = *draft
+		}
+		return err
+	}
 }
 
 func TestClaude_Extract(t *testing.T) {
@@ -82,107 +56,75 @@ func TestClaude_Extract(t *testing.T) {
 	clearedTrail.Notes = "trail id 99 not found"
 
 	tests := []struct {
-		name    string
-		status  int
-		body    string
-		want    model.Draft
-		wantErr error
-		anyErr  bool
+		name      string
+		draft     *model.Draft
+		clientErr error
+		want      model.Draft
+		wantErr   error
 	}{
 		{
-			name:   "happy path - returns draft",
-			status: http.StatusOK,
-			body:   messageBody(t, marshalDraft(t, existing), "end_turn"),
-			want:   existing,
+			name:  "happy path - returns draft",
+			draft: &existing,
+			want:  existing,
 		},
 		{
-			name:   "happy path - validation applied",
-			status: http.StatusOK,
-			body:   messageBody(t, marshalDraft(t, invalidTrail), "end_turn"),
-			want:   clearedTrail,
+			name:  "happy path - validation applied",
+			draft: &invalidTrail,
+			want:  clearedTrail,
 		},
 		{
-			name:    "error - refusal",
-			status:  http.StatusOK,
-			body:    messageBody(t, "", "refusal"),
-			wantErr: extract.ErrRefused,
+			name:      "error - refusal",
+			clientErr: llm.ErrRefused,
+			wantErr:   llm.ErrRefused,
 		},
 		{
-			name:    "error - invalid json",
-			status:  http.StatusOK,
-			body:    messageBody(t, "not json", "end_turn"),
-			wantErr: extract.ErrInvalidResponse,
+			name:      "error - invalid json",
+			clientErr: llm.ErrInvalidResponse,
+			wantErr:   llm.ErrInvalidResponse,
 		},
 		{
-			name:   "error - server failure",
-			status: http.StatusInternalServerError,
-			body:   `{"type":"error","error":{"type":"api_error","message":"boom"}}`,
-			anyErr: true,
+			name:      "error - client failure",
+			clientErr: errClient,
+			wantErr:   errClient,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			claude, _, _ := newClaude(t, tt.status, tt.body)
+			client := mocks.NewClient(t)
+			client.EXPECT().
+				Structured(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+				RunAndReturn(structuredReturning(tt.draft, tt.clientErr))
+			claude := extract.NewClaude(client)
 
 			// when
 			got, err := claude.Extract(t.Context(), transcript, catalog)
 
 			// then
-			switch {
-			case tt.wantErr != nil:
+			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
-			case tt.anyErr:
-				require.Error(t, err)
-				require.NotErrorIs(t, err, extract.ErrRefused)
-			default:
-				require.NoError(t, err)
-				assert.Equal(t, tt.want, got)
+				return
 			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 
-	t.Run("happy path - request shape", func(t *testing.T) {
+	t.Run("happy path - client arguments", func(t *testing.T) {
 		// given
-		claude, req, recorded := newClaude(t, http.StatusOK, messageBody(t, marshalDraft(t, existing), "end_turn"))
 		catalogJSON, err := json.Marshal(catalog)
 		require.NoError(t, err)
+		wantUser := "Catalog:\n" + string(catalogJSON) + "\n\nTranscript:\n" + transcript
+		client := mocks.NewClient(t)
+		client.EXPECT().
+			Structured(mock.Anything, mock.Anything, wantUser, extract.DraftSchema, mock.Anything).
+			RunAndReturn(structuredReturning(&existing, nil))
+		claude := extract.NewClaude(client)
 
 		// when
 		_, err = claude.Extract(t.Context(), transcript, catalog)
 
 		// then
 		require.NoError(t, err)
-		assert.Contains(t, req.Header.Get("anthropic-beta"), "server-side-fallback-2026-06-01")
-		var body struct {
-			Model        string `json:"model"`
-			OutputConfig struct {
-				Effort string `json:"effort"`
-				Format struct {
-					Type   string         `json:"type"`
-					Schema map[string]any `json:"schema"`
-				} `json:"format"`
-			} `json:"output_config"`
-			Fallbacks []struct {
-				Model string `json:"model"`
-			} `json:"fallbacks"`
-			Messages []struct {
-				Role    string `json:"role"`
-				Content []struct {
-					Text string `json:"text"`
-				} `json:"content"`
-			} `json:"messages"`
-		}
-		require.NoError(t, json.Unmarshal(*recorded, &body))
-		assert.Equal(t, "claude-opus-5", body.Model)
-		assert.Equal(t, "low", body.OutputConfig.Effort)
-		assert.Equal(t, "json_schema", body.OutputConfig.Format.Type)
-		assert.Equal(t, false, body.OutputConfig.Format.Schema["additionalProperties"])
-		assert.Contains(t, body.OutputConfig.Format.Schema, "$defs")
-		require.Len(t, body.Fallbacks, 1)
-		assert.Equal(t, "claude-opus-4-8", body.Fallbacks[0].Model)
-		require.Len(t, body.Messages, 1)
-		require.Len(t, body.Messages[0].Content, 1)
-		assert.Equal(t, "Catalog:\n"+string(catalogJSON)+"\n\nTranscript:\n"+transcript, body.Messages[0].Content[0].Text)
 	})
 }
