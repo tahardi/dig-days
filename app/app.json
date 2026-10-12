@@ -41,7 +41,14 @@
         }
       ],
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Dig Days saves where you worked when you press Start."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,

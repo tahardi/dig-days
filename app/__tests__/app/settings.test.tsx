@@ -2,17 +2,24 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 import { checkHealth } from '@/api/client';
 import Settings from '@/app/(tabs)/settings';
+import { listAllForExport } from '@/db/export';
+import { shareExport } from '@/export/share';
 import { loadBackendConfig, saveBackendConfig } from '@/settings/store';
 
 jest.mock('@/settings/store', () => ({
   loadBackendConfig: jest.fn(),
   saveBackendConfig: jest.fn(),
 }));
+jest.mock('@/db/DbContext', () => ({ useDb: () => ({}) }));
+jest.mock('@/db/export', () => ({ listAllForExport: jest.fn() }));
+jest.mock('@/export/share', () => ({ shareExport: jest.fn() }));
 jest.mock('@/api/client', () => ({ checkHealth: jest.fn() }));
 
 const mockLoad = jest.mocked(loadBackendConfig);
 const mockSave = jest.mocked(saveBackendConfig);
 const mockHealth = jest.mocked(checkHealth);
+const mockExportData = jest.mocked(listAllForExport);
+const mockShare = jest.mocked(shareExport);
 
 async function fillAndRender() {
   await render(<Settings />);
@@ -25,6 +32,31 @@ describe('Settings', () => {
     jest.resetAllMocks();
     mockLoad.mockResolvedValue(null);
     mockSave.mockResolvedValue();
+    mockShare.mockResolvedValue();
+    mockExportData.mockResolvedValue({
+      trails: [{ id: 1, name: 'Ridge', notes: null, createdAt: '2026-05-01T00:00:00.000Z' }],
+      features: [],
+      workDays: [
+        {
+          id: 1,
+          status: 'saved',
+          startedAt: '2026-06-01T14:00:00.000Z',
+          endedAt: null,
+          durationMinutes: 60,
+          lat: null,
+          lon: null,
+          audioPath: null,
+          transcript: null,
+          draftJson: null,
+          processError: null,
+          trailId: 1,
+          featureId: null,
+          summary: 'Cleared brush',
+          tools: [],
+        },
+      ],
+      photos: [],
+    });
   });
 
   test('saves the typed config and shows Saved', async () => {
@@ -70,5 +102,34 @@ describe('Settings', () => {
     await waitFor(() => expect(screen.getByTestId('backend-url').props.value).toBe('https://example.com'));
     expect(screen.getByTestId('backend-key').props.value).toBe('secret');
     expect(screen.getByTestId('backend-key').props.secureTextEntry).toBe(true);
+  });
+
+  test.each([
+    ['export-json', /^dig-days-\d{4}-\d{2}-\d{2}\.json$/, 'public.json', 'Cleared brush'],
+    ['export-csv', /^dig-days-\d{4}-\d{2}-\d{2}\.csv$/, 'public.comma-separated-values-text', 'Cleared brush'],
+  ])('%s shares a file without the saved key', async (testID, namePattern, uti, wantText) => {
+    mockLoad.mockResolvedValue({ url: 'https://example.com', key: 'super-secret-key' });
+    await render(<Settings />);
+    await waitFor(() => expect(screen.getByTestId('backend-key').props.value).toBe('super-secret-key'));
+
+    await fireEvent.press(screen.getByTestId(testID));
+
+    await waitFor(() => expect(mockShare).toHaveBeenCalledTimes(1));
+    const [name, contents, gotUti] = mockShare.mock.calls[0];
+    expect(name).toMatch(namePattern);
+    expect(gotUti).toBe(uti);
+    expect(contents).toContain(wantText);
+    expect(contents).not.toContain('super-secret-key');
+  });
+
+  test('shows the error when sharing fails', async () => {
+    mockShare.mockRejectedValue(new Error('sharing is not available on this device'));
+    await render(<Settings />);
+
+    await fireEvent.press(screen.getByTestId('export-json'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('settings-status')).toHaveTextContent('sharing is not available on this device'),
+    );
   });
 });
