@@ -3,7 +3,7 @@ appId: com.tahardi.digdays
 - launchApp:
     clearState: true
     permissions:
-      location: allow
+      location: inuse
 - tapOn:
     id: 'start-button'
 - assertVisible:
