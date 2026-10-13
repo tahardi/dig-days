@@ -15,9 +15,9 @@ func NewServer(
 	extractor model.Extractor,
 	logger *slog.Logger,
 ) http.Handler {
-	_, _ = transcriber, extractor
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", healthHandler)
+	mux.Handle("POST /process", processHandler{transcriber: transcriber, extractor: extractor, logger: logger})
 	return logRequests(logger, requireKey(key, mux))
 }
 
