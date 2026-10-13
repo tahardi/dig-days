@@ -4,6 +4,7 @@ appId: com.tahardi.digdays
     clearState: true
     permissions:
       location: inuse
+      microphone: allow
 - extendedWaitUntil:
     visible:
       id: 'tab-index'
