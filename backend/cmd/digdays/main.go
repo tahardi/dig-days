@@ -11,7 +11,10 @@ import (
 	"time"
 
 	"github.com/tahardi/dig-days/backend/internal/config"
+	"github.com/tahardi/dig-days/backend/internal/extract"
+	"github.com/tahardi/dig-days/backend/internal/llm"
 	"github.com/tahardi/dig-days/backend/internal/server"
+	"github.com/tahardi/dig-days/backend/internal/transcribe"
 )
 
 const (
@@ -34,9 +37,17 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 
+	transcriber := transcribe.NewWhisper(cfg.FFmpegBin, cfg.WhisperBin, cfg.WhisperModel, os.TempDir())
+	extractor := extract.NewClaude(llm.NewAnthropic(cfg.AnthropicAPIKey))
+
+	handler, err := server.NewServer(cfg.Key, transcriber, extractor, logger)
+	if err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           server.NewServer(cfg.Key, nil, nil, logger),
+		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,
 	}

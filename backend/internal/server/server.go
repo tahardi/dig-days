@@ -14,11 +14,18 @@ func NewServer(
 	transcriber transcribe.Transcriber,
 	extractor model.Extractor,
 	logger *slog.Logger,
-) http.Handler {
-	_, _ = transcriber, extractor
+) (http.Handler, error) {
+	if logger == nil {
+		logger = slog.New(slog.DiscardHandler)
+	}
+	process, err := newProcessHandler(transcriber, extractor, logger)
+	if err != nil {
+		return nil, err
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", healthHandler)
-	return logRequests(logger, requireKey(key, mux))
+	mux.Handle("POST /process", process)
+	return logRequests(logger, requireKey(key, mux)), nil
 }
 
 type statusRecorder struct {

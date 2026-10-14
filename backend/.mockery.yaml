@@ -9,3 +9,9 @@ packages:
   github.com/tahardi/dig-days/backend/internal/llm:
     interfaces:
       Client:
+  github.com/tahardi/dig-days/backend/internal/transcribe:
+    interfaces:
+      Transcriber:
+  github.com/tahardi/dig-days/backend/internal/model:
+    interfaces:
+      Extractor:
