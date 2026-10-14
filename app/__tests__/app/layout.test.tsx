@@ -5,7 +5,7 @@ import Today from '@/app/(tabs)/index';
 import Settings from '@/app/(tabs)/settings';
 import Trails from '@/app/(tabs)/trails';
 
-const mockDb = { getFirstAsync: async () => null };
+const mockDb = { getFirstAsync: async () => null, getAllAsync: async () => [] };
 jest.mock('@/db/DbContext', () => ({
   useDb: () => mockDb,
 }));
