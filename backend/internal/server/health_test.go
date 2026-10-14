@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tahardi/dig-days/backend/internal/server"
+	"github.com/tahardi/dig-days/backend/mocks"
 )
 
 func TestServer_Health(t *testing.T) {
@@ -31,7 +32,9 @@ func TestServer_Health(t *testing.T) {
 		// given
 		var logs bytes.Buffer
 		logger := slog.New(slog.NewTextHandler(&logs, nil))
-		srv := httptest.NewServer(server.NewServer("secret", nil, nil, logger))
+		handler, err := server.NewServer("secret", mocks.NewTranscriber(t), mocks.NewExtractor(t), logger)
+		require.NoError(t, err)
+		srv := httptest.NewServer(handler)
 		defer srv.Close()
 
 		// when
@@ -51,7 +54,14 @@ func TestServer_Health(t *testing.T) {
 
 	t.Run("error - post is not allowed", func(t *testing.T) {
 		// given
-		srv := httptest.NewServer(server.NewServer("secret", nil, nil, slog.New(slog.DiscardHandler)))
+		handler, err := server.NewServer(
+			"secret",
+			mocks.NewTranscriber(t),
+			mocks.NewExtractor(t),
+			slog.New(slog.DiscardHandler),
+		)
+		require.NoError(t, err)
+		srv := httptest.NewServer(handler)
 		defer srv.Close()
 
 		// when

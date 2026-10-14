@@ -40,9 +40,14 @@ func run(logger *slog.Logger) error {
 	transcriber := transcribe.NewWhisper(cfg.FFmpegBin, cfg.WhisperBin, cfg.WhisperModel, os.TempDir())
 	extractor := extract.NewClaude(llm.NewAnthropic(cfg.AnthropicAPIKey))
 
+	handler, err := server.NewServer(cfg.Key, transcriber, extractor, logger)
+	if err != nil {
+		return err
+	}
+
 	srv := &http.Server{
 		Addr:              cfg.ListenAddr,
-		Handler:           server.NewServer(cfg.Key, transcriber, extractor, logger),
+		Handler:           handler,
 		ReadHeaderTimeout: readHeaderTimeout,
 		WriteTimeout:      writeTimeout,
 	}

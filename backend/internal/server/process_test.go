@@ -209,7 +209,8 @@ func TestServer_Process(t *testing.T) {
 			if tt.extract != nil {
 				tt.extract(extractor)
 			}
-			handler := server.NewServer(testKey, transcriber, extractor, slog.New(slog.DiscardHandler))
+			handler, err := server.NewServer(testKey, transcriber, extractor, slog.New(slog.DiscardHandler))
+			require.NoError(t, err)
 			req := newProcessRequest(t, tt.key, tt.audio, tt.catalog)
 			rec := httptest.NewRecorder()
 

@@ -14,12 +14,37 @@ import (
 	"github.com/tahardi/dig-days/backend/internal/transcribe"
 )
 
-const maxUploadBytes = 50 << 20
+const (
+	megabyte       = 1 << 20
+	maxUploadBytes = 50 * megabyte
+)
+
+var (
+	ErrNilTranscriber = errors.New("transcriber is required")
+	ErrNilExtractor   = errors.New("extractor is required")
+)
 
 type processHandler struct {
 	transcriber transcribe.Transcriber
 	extractor   model.Extractor
 	logger      *slog.Logger
+}
+
+func newProcessHandler(
+	transcriber transcribe.Transcriber,
+	extractor model.Extractor,
+	logger *slog.Logger,
+) (processHandler, error) {
+	if transcriber == nil {
+		return processHandler{}, ErrNilTranscriber
+	}
+	if extractor == nil {
+		return processHandler{}, ErrNilExtractor
+	}
+	if logger == nil {
+		logger = slog.New(slog.DiscardHandler)
+	}
+	return processHandler{transcriber: transcriber, extractor: extractor, logger: logger}, nil
 }
 
 func (h processHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
