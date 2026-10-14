@@ -36,13 +36,19 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			name: "only key set applies defaults",
-			env:  map[string]string{"DIGDAYS_KEY": "secret"},
+			name: "only required vars set applies defaults",
+			env: map[string]string{
+				"DIGDAYS_KEY":       "secret",
+				"ANTHROPIC_API_KEY": "anthropic",
+				"WHISPER_MODEL":     "/models/base.bin",
+			},
 			want: config.Config{
-				ListenAddr: "127.0.0.1:8080",
-				Key:        "secret",
-				WhisperBin: "whisper-cli",
-				FFmpegBin:  "ffmpeg",
+				ListenAddr:      "127.0.0.1:8080",
+				Key:             "secret",
+				AnthropicAPIKey: "anthropic",
+				WhisperBin:      "whisper-cli",
+				WhisperModel:    "/models/base.bin",
+				FFmpegBin:       "ffmpeg",
 			},
 		},
 		{
@@ -54,6 +60,16 @@ func TestLoad(t *testing.T) {
 			name:    "error - whitespace key",
 			env:     map[string]string{"DIGDAYS_KEY": "   "},
 			wantErr: config.ErrMissingKey,
+		},
+		{
+			name:    "error - missing anthropic key",
+			env:     map[string]string{"DIGDAYS_KEY": "secret", "WHISPER_MODEL": "/models/base.bin"},
+			wantErr: config.ErrMissingAnthropicKey,
+		},
+		{
+			name:    "error - missing whisper model",
+			env:     map[string]string{"DIGDAYS_KEY": "secret", "ANTHROPIC_API_KEY": "anthropic"},
+			wantErr: config.ErrMissingWhisperModel,
 		},
 	}
 	for _, tt := range tests {
