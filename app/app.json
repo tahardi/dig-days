@@ -48,6 +48,12 @@
         {
           "locationWhenInUsePermission": "Dig Days saves where you worked when you press Start."
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Dig Days records your description of the day's work."
+        }
       ]
     ],
     "experiments": {
