@@ -35,6 +35,59 @@ Expo or adding a package, run `npm run deps:check` in `app` and fix any mismatch
 
 See `app/e2e/README.md` for how to run the Maestro flows on the iOS Simulator.
 
+## Backend setup
+
+Run these on the Linux PC that hosts the backend.
+
+1. Install ffmpeg, cmake, and the CUDA toolkit (the PC has CUDA 12.6 and an RTX 3060):
+
+   ```bash
+   sudo apt install ffmpeg cmake
+   ```
+
+2. Build Whisper with GPU support and download the model:
+
+   ```bash
+   make -C backend whisper-build whisper_cuda=1
+   make -C backend whisper-model whisper_model_name=large-v3-turbo
+   ```
+
+3. Create the env file, then fill in the values. Generate `DIGDAYS_KEY` with `openssl rand -hex 32`.
+
+   ```bash
+   mkdir -p ~/.config/digdays
+   cp backend/deploy/env.example ~/.config/digdays/env
+   chmod 600 ~/.config/digdays/env
+   ```
+
+4. Install and start the service, and keep it running after reboots and logouts:
+
+   ```bash
+   make -C backend install
+   sudo loginctl enable-linger "$USER"
+   journalctl --user -u digdays -f
+   ```
+
+5. Tailscale: install it on the PC and the iPhone, and enable MagicDNS and HTTPS certificates in the admin console.
+   Then publish the backend and check it:
+
+   ```bash
+   tailscale serve --bg 8080
+   tailscale serve status
+   ```
+
+6. Verify. Without the key the same request returns 401.
+
+   ```bash
+   curl -H "Authorization: Bearer $DIGDAYS_KEY" https://<pc>.<tailnet>.ts.net/health
+   ```
+
+To run the live test against the real Claude API:
+
+```bash
+ANTHROPIC_API_KEY=... make -C backend test-live whisper_cuda=1 whisper_model_name=large-v3-turbo
+```
+
 ## Development
 
 Run every check before opening a PR:

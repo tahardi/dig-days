@@ -1,0 +1,12 @@
+[Unit]
+Description=Dig Days backend
+After=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/digdays
+EnvironmentFile=%h/.config/digdays/env
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

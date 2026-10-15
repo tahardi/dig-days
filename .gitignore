@@ -26,3 +26,4 @@ app/android/
 tmp/
 
 backend/.tools/
+backend/bin/
