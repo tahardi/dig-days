@@ -9,6 +9,22 @@ SHELL := bash
 .PHONY: pre-pr
 pre-pr: tidy mock lint fix test-unit test-integration
 
+.PHONY: build
+build:
+	@go build -o bin/digdays ./cmd/digdays
+
+.PHONY: run
+run: build
+	@set -a; . $(HOME)/.config/digdays/env; set +a; ./bin/digdays
+
+.PHONY: install
+install: build
+	@install -D bin/digdays $(HOME)/.local/bin/digdays
+	@install -D -m 644 deploy/digdays.service $(HOME)/.config/systemd/user/digdays.service
+	@systemctl --user daemon-reload
+	@systemctl --user enable --now digdays.service
+	@systemctl --user restart digdays.service
+
 .PHONY: fix
 fix:
 	@go fix ./...
@@ -46,6 +62,8 @@ test-integration: tidy whisper-build whisper-model
 	@go test -v -count=1 -race ./test/integration/...
 
 .PHONY: test-live
+test-live: export WHISPER_BIN ?= $(CURDIR)/$(whisper_bin)
+test-live: export WHISPER_MODEL ?= $(CURDIR)/$(whisper_model)
 test-live: tidy
 	@go test -v -count=1 -race ./test/live/...
 
