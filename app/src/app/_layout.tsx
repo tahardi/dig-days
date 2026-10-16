@@ -12,6 +12,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="trail/[id]" options={{ title: 'Trail' }} />
+          <Stack.Screen name="review/[id]" options={{ title: 'Review' }} />
           <Stack.Screen name="feature/[trailId]/[featureId]" options={{ title: 'Feature' }} />
         </Stack>
       </DbProvider>
