@@ -12,6 +12,38 @@ jest.mock('expo-secure-store', () => ({
 describe('backend config store', () => {
   beforeEach(() => {
     mockStore.clear();
+    delete process.env.EXPO_PUBLIC_BACKEND_URL;
+    delete process.env.EXPO_PUBLIC_BACKEND_KEY;
+  });
+
+  test.each([
+    ['nothing is saved', false],
+    ['a config is saved', true],
+  ])('uses the dev config from the environment when %s', async (_name, saved) => {
+    if (saved) {
+      await saveBackendConfig({ url: 'https://saved.example.com', key: 'saved' });
+    }
+    process.env.EXPO_PUBLIC_BACKEND_URL = 'https://dev.example.com';
+    process.env.EXPO_PUBLIC_BACKEND_KEY = 'dev';
+
+    expect(await loadBackendConfig()).toEqual({ url: 'https://dev.example.com', key: 'dev' });
+  });
+
+  test.each([
+    ['EXPO_PUBLIC_BACKEND_URL', 'https://dev.example.com'],
+    ['EXPO_PUBLIC_BACKEND_KEY', 'dev'],
+  ])('ignores the dev config when only %s is set', async (name, value) => {
+    await saveBackendConfig({ url: 'https://saved.example.com', key: 'saved' });
+    process.env[name] = value;
+
+    expect(await loadBackendConfig()).toEqual({ url: 'https://saved.example.com', key: 'saved' });
+  });
+
+  test('trims the dev config', async () => {
+    process.env.EXPO_PUBLIC_BACKEND_URL = '  https://dev.example.com  ';
+    process.env.EXPO_PUBLIC_BACKEND_KEY = '  dev  ';
+
+    expect(await loadBackendConfig()).toEqual({ url: 'https://dev.example.com', key: 'dev' });
   });
 
   test('round-trips a saved config', async () => {

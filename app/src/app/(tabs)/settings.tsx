@@ -61,6 +61,7 @@ export default function Settings() {
 
   return (
     <View style={styles.container}>
+      <Text>Backend URL</Text>
       <TextInput
         testID="backend-url"
         style={styles.input}
@@ -71,6 +72,7 @@ export default function Settings() {
         value={url}
         onChangeText={setUrl}
       />
+      <Text>Backend key</Text>
       <TextInput
         testID="backend-key"
         style={styles.input}
