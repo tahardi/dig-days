@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"cmp"
 	"os"
 	"strings"
 	"testing"
@@ -21,7 +22,7 @@ func TestWhisper_Transcribe(t *testing.T) {
 		}
 		t.Fatal("WHISPER_BIN and WHISPER_MODEL must be set in CI")
 	}
-	w := transcribe.NewWhisper("ffmpeg", whisperBin, modelPath, t.TempDir())
+	w := transcribe.NewWhisper(cmp.Or(os.Getenv("FFMPEG_BIN"), "ffmpeg"), whisperBin, modelPath, t.TempDir())
 
 	// when
 	got, err := w.Transcribe(t.Context(), "../testdata/white-wolf.m4a")

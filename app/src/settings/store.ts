@@ -6,6 +6,11 @@ const URL_KEY = 'backend_url';
 const KEY_KEY = 'backend_key';
 
 export async function loadBackendConfig(): Promise<BackendConfig | null> {
+  const devUrl = process.env.EXPO_PUBLIC_BACKEND_URL?.trim();
+  const devKey = process.env.EXPO_PUBLIC_BACKEND_KEY?.trim();
+  if (devUrl && devKey) {
+    return { url: devUrl, key: devKey };
+  }
   const url = await SecureStore.getItemAsync(URL_KEY);
   const key = await SecureStore.getItemAsync(KEY_KEY);
   if (!url || !key) {

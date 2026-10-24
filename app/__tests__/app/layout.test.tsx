@@ -16,14 +16,12 @@ jest.mock('@/settings/store', () => ({
 
 describe('TabsLayout', () => {
   test('shows the three tabs and starts on Today', async () => {
-    const view = renderRouter({
+    const view = await renderRouter({
       '(tabs)/_layout': TabsLayout,
       '(tabs)/index': Today,
       '(tabs)/trails': Trails,
       '(tabs)/settings': Settings,
     });
-
-    await view;
 
     expect(screen.getAllByText('Today').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Trails').length).toBeGreaterThan(0);

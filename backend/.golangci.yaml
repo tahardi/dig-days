@@ -16,7 +16,6 @@ linters:
         linters:
           - gosec
         text: G306
-      # The live test only calls its own local httptest server, so the SSRF warning is a false positive.
       - path: test/live/process_test\.go
         linters:
           - gosec

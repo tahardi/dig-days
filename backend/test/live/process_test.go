@@ -2,8 +2,10 @@ package live_test
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -30,9 +32,15 @@ func TestProcess(t *testing.T) {
 	if anthropicKey == "" || whisperBin == "" || whisperModel == "" {
 		t.Skip("set ANTHROPIC_API_KEY, WHISPER_BIN and WHISPER_MODEL (make test-live)")
 	}
-	transcriber := transcribe.NewWhisper("ffmpeg", whisperBin, whisperModel, t.TempDir())
+	transcriber := transcribe.NewWhisper(
+		cmp.Or(os.Getenv("FFMPEG_BIN"), "ffmpeg"),
+		whisperBin,
+		whisperModel,
+		t.TempDir(),
+	)
 	extractor := extract.NewClaude(llm.NewAnthropic(anthropicKey))
-	handler, err := server.NewServer(liveKey, transcriber, extractor, nil)
+	logger := slog.New(slog.NewTextHandler(t.Output(), nil))
+	handler, err := server.NewServer(liveKey, transcriber, extractor, logger)
 	require.NoError(t, err)
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
@@ -55,10 +63,11 @@ func TestProcess(t *testing.T) {
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode, string(raw))
+	t.Logf("response: %s", raw)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 	var got model.ProcessResponse
 	require.NoError(t, json.Unmarshal(raw, &got))
-	t.Logf("response: %s", raw)
+	assert.NotEmpty(t, got.Transcript)
 	require.NotNil(t, got.Draft.Trail.ExistingID)
 	require.NotNil(t, got.Draft.Feature.ExistingID)
 	assert.EqualValues(t, 1, *got.Draft.Trail.ExistingID)
